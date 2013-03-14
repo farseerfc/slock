@@ -214,6 +214,7 @@ static Lock *
 lockscreen(Display *dpy, int screen)
 {
 	char curs[] = {0, 0, 0, 0, 0, 0, 0, 0};
+	XClassHint *hint;
 	unsigned int len;
 	int i;
 	Lock *lock;
@@ -241,8 +242,14 @@ lockscreen(Display *dpy, int screen)
 	wa.override_redirect = 1;
 	wa.background_pixel = lock->colors[INIT];
 	lock->win = XCreateWindow(dpy, lock->root, 0, 0, DisplayWidth(dpy, lock->screen), DisplayHeight(dpy, lock->screen),
-	                          0, DefaultDepth(dpy, lock->screen), CopyFromParent,
-	                          DefaultVisual(dpy, lock->screen), CWOverrideRedirect | CWBackPixel, &wa);
+								0, DefaultDepth(dpy, lock->screen), CopyFromParent,
+								DefaultVisual(dpy, lock->screen), CWOverrideRedirect | CWBackPixel, &wa);
+	
+	hint = XAllocClassHint();
+	hint->res_name = "slock";
+	hint->res_class = "slock";
+	XSetClassHint(dpy,lock->win,hint);
+
 	lock->pmap = XCreateBitmapFromData(dpy, lock->win, curs, 8, 8);
 	invisible = XCreatePixmapCursor(dpy, lock->pmap, lock->pmap, &color, &color, 0, 0);
 	XDefineCursor(dpy, lock->win, invisible);
