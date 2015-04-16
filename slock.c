@@ -18,6 +18,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
+# include <X11/extensions/dpms.h>
+
 #if HAVE_BSD_AUTH
 #include <login_cap.h>
 #include <bsd_auth.h>
@@ -110,6 +112,14 @@ getpw(void)
 #endif
 
 static void
+dpms_force_off(Display *dpy)
+{
+	DPMSEnable(dpy);
+	usleep(100000);
+	DPMSForceLevel(dpy, DPMSModeOff);
+}
+
+static void
 #ifdef HAVE_BSD_AUTH
 readpw(Display *dpy)
 #else
@@ -180,6 +190,7 @@ readpw(Display *dpy, const char *pws)
 				for (screen = 0; screen < nscreens; screen++) {
 					XSetWindowBackground(dpy, locks[screen]->win, locks[screen]->colors[EMPTY]);
 					XClearWindow(dpy, locks[screen]->win);
+					dpms_force_off(dpy);
 				}
 			}
 			llen = len;
@@ -206,7 +217,6 @@ unlockscreen(Display *dpy, Lock *lock)
 	XFreeColors(dpy, DefaultColormap(dpy, lock->screen), lock->colors, NUMCOLS, 0);
 	XFreePixmap(dpy, lock->pmap);
 	XDestroyWindow(dpy, lock->win);
-
 	free(lock);
 }
 
@@ -278,6 +288,8 @@ lockscreen(Display *dpy, int screen)
 	else {
 		XSelectInput(dpy, lock->root, SubstructureNotifyMask);
 	}
+
+	dpms_force_off(dpy);
 
 	return lock;
 }
