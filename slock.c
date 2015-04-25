@@ -190,7 +190,9 @@ readpw(Display *dpy, const char *pws)
 				for (screen = 0; screen < nscreens; screen++) {
 					XSetWindowBackground(dpy, locks[screen]->win, locks[screen]->colors[EMPTY]);
 					XClearWindow(dpy, locks[screen]->win);
-					dpms_force_off(dpy);
+
+					if (running)
+						dpms_force_off(dpy);
 				}
 			}
 			llen = len;
@@ -287,9 +289,8 @@ lockscreen(Display *dpy, int screen)
 	}
 	else {
 		XSelectInput(dpy, lock->root, SubstructureNotifyMask);
+		dpms_force_off(dpy);
 	}
-
-	dpms_force_off(dpy);
 
 	return lock;
 }
